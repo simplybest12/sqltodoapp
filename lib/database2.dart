@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 
 class SQLhelper {
@@ -64,5 +65,14 @@ class SQLhelper {
     final result =
         await db.update('items', data, where: 'id=?', whereArgs: [id]);
     return result;
+  }
+
+  static Future<void> deleteItem(int id) async {
+    final db = await SQLhelper.db();
+    try {
+      await db.delete('item', where: 'id=?', whereArgs: [id]);
+    } catch (err) {
+      debugPrint("Something went wrong when deleting an item: $err");
+    }
   }
 }
