@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart' as sql;
+import 'package:sqflite/sqlite_api.dart';
 
 class SQLhelper {
   static final _dbname = 'mydatabase.db';
@@ -11,10 +13,10 @@ class SQLhelper {
 
   static Future<void> createTables(sql.Database database) async {
     await database.execute('''
-    CREATE TABLE $_table(
-      $columnId INT PRIMARY KEY AUTOINCREMENT NOT NULL,
-      $columntitle TEXT,
-      $columnDescription TEXT,
+    CREATE TABLE items(
+      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+      title TEXT,
+      description TEXT,
       createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
     ''');
@@ -32,7 +34,11 @@ class SQLhelper {
   static Future<int> createItem(String title, String? description) async {
     //object creation
     final db = await SQLhelper.db();
-    final data = {'title': title, 'description': description};
+    final data = {
+      'title': title,
+      'description': description,
+      'createdAt': DateFormat.jm().format(DateTime.now())
+    };
     final id = await db.insert('items', data,
         //this is for good practice
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
@@ -60,10 +66,11 @@ class SQLhelper {
     final data = {
       'title': title,
       'description': description,
-      'createdAt': DateTime.now().toString()
+      'createdAt': DateFormat.jm().format(DateTime.now())
     };
     final result =
         await db.update('items', data, where: 'id=?', whereArgs: [id]);
+
     return result;
   }
 

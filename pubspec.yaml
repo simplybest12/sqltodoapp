@@ -38,6 +38,11 @@ dependencies:
   intl: ^0.18.1
   sqflite: ^2.2.8+1
   image_picker: ^0.8.7+4
+  flutter_slidable: ^3.0.0
+  image_cropper: ^3.0.3
+  path_provider: ^2.0.14
+  permission_handler: ^10.2.0
+  image_gallery_saver: ^1.7.1
 
 dev_dependencies:
   flutter_test:
