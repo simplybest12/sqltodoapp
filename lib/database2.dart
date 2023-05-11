@@ -18,6 +18,7 @@ class SQLhelper {
       title TEXT,
       description TEXT,
       createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      isImportant BOOLEAN NOT NULL
     )
     ''');
   }
@@ -77,7 +78,7 @@ class SQLhelper {
   static Future<void> deleteItem(int id) async {
     final db = await SQLhelper.db();
     try {
-      await db.delete('item', where: 'id=?', whereArgs: [id]);
+      await db.delete('items', where: 'id=?', whereArgs: [id]);
     } catch (err) {
       debugPrint("Something went wrong when deleting an item: $err");
     }

@@ -20,8 +20,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  
   bool _isPressed = false;
+
   List<Map<String, dynamic>> _journals = [];
   File? _image;
   final picker = ImagePicker();
@@ -29,7 +29,7 @@ class _MainScreenState extends State<MainScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  void refreshJournals() async {
+  Future<void> refreshJournals() async {
     final data = await SQLhelper.getItems();
     setState(() {
       _journals = data;
@@ -37,10 +37,13 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  List isChecked = [];
+
   Future _addItem() async {
     await SQLhelper.createItem(
         _titleController.text, _descriptionController.text);
     refreshJournals();
+    print(_journals);
   }
 
   Future _updateItem(int id) async {
@@ -56,13 +59,7 @@ class _MainScreenState extends State<MainScreen> {
     refreshJournals();
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text("Successfully Deleted")));
-  }
-
-  void checkBoxFunction(int index) {
-    setState(() {
-      _journals[index] = _journals[index];
-    });
-    refreshJournals();
+    print(_journals);
   }
 
   void showForm(int? id) async {
@@ -128,9 +125,14 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    refreshJournals();
-    print("Success");
-    print(".. number of times ${_journals.length}");
+    () async {
+      await refreshJournals();
+      print("ELements Are: ${_journals}");
+    }();
+    // refreshJournals();
+    // print("Success");
+    // print(".. number of times ${_journals.length}");
+    // print("ELements Are: ${_journals}");
   }
 
   @override
@@ -193,14 +195,14 @@ class _MainScreenState extends State<MainScreen> {
                       onTap: () {
                         _getFromGallery();
                       },
-                      child: _image!=null?
-                          CircleAvatar(
-                              backgroundImage: FileImage(_image!,
-                              
+                      child: _image != null
+                          ? CircleAvatar(
+                              backgroundImage: FileImage(
+                                _image!,
                               ),
                               radius: 35,
                             )
-                          :const Icon(
+                          : const Icon(
                               CupertinoIcons.profile_circled,
                               size: 55,
                             )
@@ -221,32 +223,43 @@ class _MainScreenState extends State<MainScreen> {
               shrinkWrap: true,
               itemCount: _journals.length,
               itemBuilder: (context, index) => Slidable(
-                endActionPane: ActionPane(motion: StretchMotion(), children: [
-                  SlidableAction(
-                    autoClose: true,
-                    onPressed: (value) {
-                      _deleteItem(_journals[index]['id']);
-                    },
-                    backgroundColor: Colors.red,
-                    icon: Icons.delete,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  SizedBox(
-                    width: 10,
-                    height: 10,
-                  ),
-                  SlidableAction(
-                    onPressed: (value) {
-                      showForm(_journals[index]['id']);
-                    },
-                    backgroundColor: Colors.blue,
-                    icon: Icons.edit,
-                    borderRadius: BorderRadius.circular(30),
-                  )
-                ]),
+                endActionPane: ActionPane(
+                  motion: const StretchMotion(),
+                  children: [
+                    SlidableAction(
+                      autoClose: true,
+                      onPressed: (value) {
+                        _deleteItem(_journals[index]['id']);
+                      },
+                      backgroundColor: Colors.red,
+                      icon: Icons.delete,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    SizedBox(width: 10),
+                    SlidableAction(
+                      onPressed: (value) {
+                        showForm(_journals[index]['id']);
+                      },
+                      backgroundColor: Colors.blue,
+                      icon: Icons.edit,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    SizedBox(width: 10),
+                  ],
+                ),
                 child: GestureDetector(
                   onTap: () {
-                    checkBoxFunction(index);
+                    setState(() {
+                      if (isChecked.contains(_journals[index]['id'].toString())) {
+                        _isPressed=true;
+                      
+                        isChecked.remove(_journals[index]['id'].toString());
+                      } else {
+                        _isPressed=false;
+                        isChecked.add(_journals[index]['id'].toString());
+                      }
+                    });
+
                   },
                   child: Container(
                     child: Card(
@@ -263,15 +276,14 @@ class _MainScreenState extends State<MainScreen> {
                           child: Text(
                             _journals[index]['title'].toString(),
                             style: TextStyle(
-                                decoration: _isPressed
-                                    ? TextDecoration.none
-                                    : TextDecoration.lineThrough),
+                                decoration:isChecked.contains(_journals[index]['id'].toString()) ? TextDecoration.lineThrough:TextDecoration.none ),
                           ),
                         ),
                         subtitle: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child:
                               Text(_journals[index]['description'].toString()),
+                          // Text(index.toString()),
                         ),
                         trailing: SizedBox(
                           width: 50,
@@ -293,12 +305,10 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-   void _getFromGallery() async {
-    var image = await ImagePicker().pickImage(
-      source: ImageSource.gallery);
-      setState(() {
-        _image = image as File?;
-      });
-    
+  void _getFromGallery() async {
+    var image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    setState(() {
+      _image = image as File?;
+    });
   }
 }
